@@ -4,20 +4,19 @@ const Schema = mongoose.Schema;
 const UserSchema = new Schema({
   userId: {
     type: String,
-    unique: true,
-    require: true
+    require: true,
   },
   account: {
-    type: String
-  },
-  userName: {
-    type: String
+    type: String,
+    require: true,
   },
   email: {
-    type: String
+    type: String,
+    require: true,
   },
-  phone: {
-    type: String
+  tel: {
+    type: String,
+    require: true,
   },
 }, { collection: 'user', versionKey: false});
 

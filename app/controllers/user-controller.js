@@ -13,14 +13,13 @@ const login = async (ctx, next) => {
   const user = await User_col.findOne({
     account: req.account
   }, {
-    __v: 0,
     _id: 0
   });
   if (!user) {
     ctx.status = 200;
     ctx.body = {
       code: 0,
-      msg: 'account or password error!'
+      msg: '用户不存在'
     }
     return;
   }
@@ -39,7 +38,6 @@ const login = async (ctx, next) => {
   if (match) {
     ctx.body = {
       code: 1,
-      msg: 'login success',
       data: user
     }
     return;
@@ -47,12 +45,12 @@ const login = async (ctx, next) => {
 
   ctx.body = {
     code: 0,
-    msg: 'account or password error!'
+    msg: '用户名或密码错误'
   }
 }
 
 // 注册
-const register = async (ctx, next) => {
+const regist = async (ctx, next) => {
   const req = ctx.request.body;
 
   // 获取用户的 userId
@@ -64,7 +62,7 @@ const register = async (ctx, next) => {
   if (user) {
     ctx.body = {
       code: 0,
-      msg: '用户名重复！'
+      msg: '用户名重复'
     }
     return;
   }
@@ -73,7 +71,9 @@ const register = async (ctx, next) => {
   const userId = uuidv1();
   const newUser = await User_col.create({
     userId,
-    account: req.account
+    account: req.account,
+    tel: req.tel,
+    email: req.email,
   });
 
   if (newUser) {
@@ -104,5 +104,5 @@ const register = async (ctx, next) => {
 
 module.exports = {
   login,
-  register,
+  regist,
 }

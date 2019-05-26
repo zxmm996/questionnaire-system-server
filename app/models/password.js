@@ -4,8 +4,7 @@ const Schema = mongoose.Schema;
 const PasswordSchema = new Schema({
   userId: {
     type: String,
-    unique: true,
-    required: true
+    required: true,
   },
   hash: {
     type: String,
