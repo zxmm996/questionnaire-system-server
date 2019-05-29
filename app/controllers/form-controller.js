@@ -1,6 +1,7 @@
 const config = require('./../../config');
 const Form_col = require('./../models/form');
 const uuidv1 = require('uuid/v1');
+const fs = require('fs');
 
 // 创建
 const createForm = async (ctx, next) => {
@@ -120,10 +121,35 @@ const fillForm = async (ctx, next) => {
   }
 }
 
+// 导出表单
+const exportForm = async (ctx, next) => {
+  const req = ctx.request.body;
+  ctx.status = 200;
+  
+  // 获取表单
+  const form = await Form_col.findOne({
+    formId: req.formId,
+  });
+  
+  // const buffer = Buffer.from(form);
+  fs.writeFile('./excel.json', form,  function(err) {
+    if (err) {
+        return console.error(err);
+    }
+    console.log("数据写入成功！");
+  });
+
+  ctx.body = {
+    code: 1,
+    msg: '提交成功',
+  }
+}
+
 module.exports = {
   createForm,
   getForms,
   deleteForm,
   getFormDetail,
   fillForm,
+  exportForm,
 }
