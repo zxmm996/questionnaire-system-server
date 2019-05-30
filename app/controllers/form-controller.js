@@ -1,7 +1,8 @@
+const fs = require('fs');
+const xlsx = require('node-xlsx');
+const uuidv1 = require('uuid/v1');
 const config = require('./../../config');
 const Form_col = require('./../models/form');
-const uuidv1 = require('uuid/v1');
-const fs = require('fs');
 
 // 创建
 const createForm = async (ctx, next) => {
@@ -42,7 +43,7 @@ const getForms = async (ctx, next) => {
     formId: 1,
     title: 1,
     _id: 0,
-  });
+  }).sort({_id: -1});
 
 
   ctx.body = {
@@ -122,27 +123,71 @@ const fillForm = async (ctx, next) => {
 }
 
 // 导出表单
+const questionTypeMapper = {
+    input: '填空题',
+    radio: '单选题',
+    checkbox: '多选题',
+}
 const exportForm = async (ctx, next) => {
   const req = ctx.request.body;
   ctx.status = 200;
-  
+
   // 获取表单
   const form = await Form_col.findOne({
     formId: req.formId,
   });
-  
-  // const buffer = Buffer.from(form);
-  fs.writeFile('./excel.json', form,  function(err) {
-    if (err) {
-        return console.error(err);
-    }
-    console.log("数据写入成功！");
-  });
 
+  const formData = [];
+  formData.push([form.title]);
+  const length = form.questions.length;
+
+  function generator(questions, index) {
+    const question = questions[index];
+    formData.push([`第${index + 1}题：${question.title}[${questionTypeMapper[question.type]}]`]);
+    if (question.type === 'input') {
+      formData.push(['序号', '答案文本']);
+    } else {
+      formData.push(['选项', '小计', '比例']);
+    }
+    
+    const dataSource = [];
+    form.answers.forEach(answer => {
+      dataSource.push(answer.find(obj => obj.id === question.id));
+    })
+
+      if (question.type === 'input') {
+        form.answers.forEach((item, index) => {
+          formData.push([index + 1, dataSource[index].answer])
+        });
+      } else if (question.type === 'radio') {
+        question.options.forEach((item, index) => {
+          const count = dataSource.filter(source => source.answer === item.id).length;
+          formData.push([item.value, count, (count / form.answers.length).toFixed(4) * 100 + '%']);
+        });
+      } else if (question.type === 'checkbox') {
+        question.options.forEach((item, index) => {
+          const count = dataSource.filter(source => source.answer.indexOf(item.id) > -1).length;
+          formData.push([item.value, count, (count / form.answers.length).toFixed(4) * 100 + '%']);
+        });
+      }
+
+
+    if (index < length -1) {
+      generator(questions, index + 1);
+    }
+  }
+
+  generator(form.questions, 0);
+  
+  var buffer = xlsx.build([{name: "mySheet", data: formData}])
+
+  fs.writeFileSync(__dirname + `../../../static/${form.formId}.xlsx`, buffer)
+  
   ctx.body = {
     code: 1,
-    msg: '提交成功',
+    data: `http://localhost:3000/${form.formId}.xlsx`,
   }
+
 }
 
 module.exports = {

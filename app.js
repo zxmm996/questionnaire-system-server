@@ -3,8 +3,13 @@ const config = require('./config');
 const cors = require('koa2-cors');
 const bodyParser = require('koa-bodyparser');
 const mongoose = require('mongoose');
+const static = require('koa-static');
+
 mongoose.set('useFindAndModify', false);
+
 const app = new Koa();
+
+app.use(static(__dirname + '/static'));
 
 mongoose.connect(config.db, {useNewUrlParser:true}, (err) => {
     if (err) {
