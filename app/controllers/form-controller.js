@@ -181,13 +181,12 @@ const exportForm = async (ctx, next) => {
   
   var buffer = xlsx.build([{name: "mySheet", data: formData}])
 
-  fs.writeFileSync(__dirname + `../../../static/${form.formId}.xlsx`, buffer)
+  fs.writeFileSync(`./static/${form.formId}.xlsx`, buffer)
   
   ctx.body = {
     code: 1,
     data: `http://localhost:3000/${form.formId}.xlsx`,
   }
-
 }
 
 module.exports = {
